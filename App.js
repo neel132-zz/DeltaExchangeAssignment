@@ -1,112 +1,165 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
-
-import React from 'react';
-import type {Node} from 'react';
+import React, { useRef } from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+  Table,
+  Row,
+  Rows,
+  Col,
+} from 'react-native-table-component';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+const borderColor = '#C1C0B9';
+const primaryColor = 'dodgerblue';
+const backgroundColor = '#F7F6E7';
 
-const Section = ({children, title}): Node => {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-};
+export default function App() {
+  const leftRef = useRef(null);
+  const rightRef = useRef(null);
 
-const App: () => Node = () => {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  const state = {
+    tableHead: [
+      'Type',
+      'Bid',
+      'Mark',
+      'Ask',
+      '24h Call',
+    ],
+    widthArr: [100, 100, 100, 100, 100],
   };
 
+  const headerHeight = 40;
+  const leftColumnWidth = 100;
+
+  const recordData = [];
+  for (let i = 0; i < 60; i += 1) {
+    const rowData = [];
+    rowData.push(`Record ${i}`);
+    recordData.push(rowData);
+  }
+
+  const tableData = [];
+  for (let i = 0; i < 60; i += 1) {
+    const rowData = [];
+    for (let j = 0; j < 9; j += 1) {
+      rowData.push(`${i}${j}`);
+    }
+    tableData.push(rowData);
+  }
+
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
+      <SafeAreaView
+        style={{
+          flex: 1,
+          flexDirection: 'row',
+          backgroundColor: '#eee',
+        }}
+      >
+        {/* Left Column */}
         <View
           style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.js</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+            width: leftColumnWidth,
+            backgroundColor: 'yellow',
+            borderRightWidth: 1,
+            borderRightColor: borderColor,
+          }}
+        >
+          {/* Blank Cell */}
+          <View
+            style={{
+              height: headerHeight,
+              backgroundColor: primaryColor,
+              borderBottomWidth: 1,
+              borderBottomColor: borderColor,
+            }}
+          >
+            {/* <Table borderStyle={{ borderWidth: 1, borderColor }}> */}
+              <Row
+                data={["Strike"]}
+                widthArr={state.widthArr}
+                style={styles.head}
+                textStyle={{ ...styles.text, color: 'white', width: leftColumnWidth, textAlign: 'center',}}
+              />
+            {/* </Table> */}
+          </View>
+          {/* Left Container : scroll synced */}
+          <ScrollView
+            ref={leftRef}
+            style={{
+              flex: 1,
+              backgroundColor: 'white',
+            }}
+            scrollEnabled={false}
+            showsVerticalScrollIndicator={false}
+          >
+            <Table
+              borderStyle={{
+                borderWidth: 1,
+                borderColor,
+              }}
+            >
+              {recordData.map((rowData, index) => (
+                <Row
+                  key={index}
+                  data={rowData}
+                  widthArr={[leftColumnWidth]}
+                  style={index % 2 ? styles.row : { backgroundColor }}
+                  textStyle={styles.text}
+                />
+              ))}
+            </Table>
+          </ScrollView>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+        {/* Right Column */}
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'white',
+          }}
+        >
+          <ScrollView horizontal={true} bounces={false}>
+            <View>
+              <Table borderStyle={{ borderWidth: 1, borderColor }}>
+                <Row
+                  data={state.tableHead}
+                  widthArr={state.widthArr}
+                  style={styles.head}
+                  textStyle={{ ...styles.text, color: 'white' }}
+                />
+              </Table>
+              <ScrollView
+                ref={rightRef}
+                style={styles.dataWrapper}
+                scrollEventThrottle={16}
+                bounces={false}
+                onScroll={(e) => {
+                  const { y } = e.nativeEvent.contentOffset;
+                  leftRef.current?.scrollTo({ y, animated: false });
+                }}
+              >
+                <Table borderStyle={{ borderWidth: 1, borderColor }}>
+                  {tableData.map((rowData, index) => (
+                    <Row
+                      key={index}
+                      data={rowData}
+                      widthArr={state.widthArr}
+                      style={index % 2 ? styles.row : { backgroundColor }}
+                      textStyle={styles.text}
+                    />
+                  ))}
+                </Table>
+              </ScrollView>
+            </View>
+          </ScrollView>
+        </View>
+      </SafeAreaView>    
   );
-};
+}
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
+  container: { flex: 1, padding: 16, paddingTop: 30, backgroundColor: '#eee' },
+  head: { height: 40, backgroundColor: primaryColor },
+  wrapper: { flexDirection: 'row' },
+  title: { flex: 1, backgroundColor: '#f6f8fa' },
+  row: { height: 28 },
+  text: { textAlign: 'center' },
+  dataWrapper: { marginTop: -1 },
 });
-
-export default App;
